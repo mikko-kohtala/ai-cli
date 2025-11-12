@@ -15,12 +15,12 @@ This document tracks the implementation status for each AI CLI tool across diffe
 
 **Documentation**: [Docs](https://ampcode.com/manual)
 
-| Operation     | Status             | Command/Method                                      |
-| ------------- | ------------------ | --------------------------------------------------- |
-| Version Check | ✅ Implemented     | `amp --version`                                     |
-| Install       | ✅ Implemented     | `curl -fsSL https://ampcode.com/install.sh \| bash` |
-| Uninstall     | ❌ Not implemented |                                                     |
-| Upgrade       | ❌ Not implemented |                                                     |
+| Operation     | Status         | Command/Method                                           |
+| ------------- | -------------- | -------------------------------------------------------- |
+| Version Check | ✅ Implemented | `amp --version`                                          |
+| Install       | ✅ Implemented | `ai-cli-apps install amp` (runs official installer) |
+| Uninstall     | ✅ Implemented | `ai-cli-apps uninstall amp`                         |
+| Upgrade       | ✅ Implemented | `ai-cli-apps upgrade amp` / `ai-cli-apps update amp` (runs `amp update`)       |
 
 ## Claude Code
 
@@ -102,8 +102,8 @@ This document tracks the implementation status for each AI CLI tool across diffe
 ## Next Steps
 
 1. Research Cursor CLI (`cursor-agent`) - verify version check, install, uninstall, upgrade commands
-2. Research Amp's uninstall process
+2. ✅ ~~Research Amp's uninstall process~~ (Done)
 3. ✅ ~~Research Claude Code install/uninstall/upgrade process~~ (Done)
 4. Implement install/uninstall commands for remaining tools
-5. Research upgrade commands for all tools
+5. Research upgrade commands for remaining tools
 6. Implement upgrade functionality in the CLI

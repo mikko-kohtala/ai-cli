@@ -1,4 +1,4 @@
-# ai-cli-installer
+# ai-cli-apps
 
 A Rust-based CLI tool to manage AI development tools from the command line.
 
@@ -13,33 +13,33 @@ make install
 ### Check Versions
 
 ```bash
-ai-cli-installer          # Show installed versions
-ai-cli-installer list     # Show installed versions (alias)
-ai-cli-installer check    # Show installed versions (alias)
+ai-cli-apps          # Show installed versions
+ai-cli-apps list     # Show installed versions (alias)
+ai-cli-apps check    # Show installed versions (alias)
 ```
 
 ### Install Tools
 
 ```bash
 # Interactive mode - select from a menu
-ai-cli-installer install
-ai-cli-installer add       # Alias for install
+ai-cli-apps install
+ai-cli-apps add       # Alias for install
 
 # Direct installation - specify tool name
-ai-cli-installer install claude
-ai-cli-installer add claude
+ai-cli-apps install claude
+ai-cli-apps add claude
 ```
 
 ### Uninstall Tools
 
 ```bash
 # Interactive mode - select from a menu
-ai-cli-installer uninstall
-ai-cli-installer remove    # Alias for uninstall
+ai-cli-apps uninstall
+ai-cli-apps remove    # Alias for uninstall
 
 # Direct uninstallation - specify tool name
-ai-cli-installer uninstall claude
-ai-cli-installer remove claude
+ai-cli-apps uninstall claude
+ai-cli-apps remove claude
 ```
 
 ## Supported Tools

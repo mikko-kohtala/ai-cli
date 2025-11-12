@@ -2,11 +2,11 @@
 
 ## Project Structure & Module Organization
 
-ai-cli-installer is a single binary crate; all CLI wiring, tool metadata, and async workflows live in `src/main.rs`. Dependencies live in `Cargo.toml` (edition 2024). Use the `Makefile` for repeatable builds, `README.md` for CLI examples, and `TODO.md` for roadmap items. Build outputs belong in `target/`; never commit that directory or downloaded binaries.
+ai-cli-apps is a single binary crate; all CLI wiring, tool metadata, and async workflows live in `src/main.rs`. Dependencies live in `Cargo.toml` (edition 2024). Use the `Makefile` for repeatable builds, `README.md` for CLI examples, and `TODO.md` for roadmap items. Build outputs belong in `target/`; never commit that directory or downloaded binaries.
 
 ## Build, Test, and Development Commands
 
-- `make build` – `cargo build --release` into `target/release/ai-cli-installer`.
+- `make build` – `cargo build --release` into `target/release/ai-cli-apps`.
 - `make install` – rebuilds then installs into your Cargo bin for smoke tests.
 - `make test` – executes the Rust test suite; run before every PR.
 - `cargo run -- list` / `cargo run -- install claude` – exercise CLI flows without global installs.
@@ -22,7 +22,7 @@ Place unit tests beside the code under `#[cfg(test)] mod tests` and name cases w
 
 ## Commit & Pull Request Guidelines
 
-Recent history shows concise, imperative subjects such as `claude install & uninstall`; continue that format and keep summaries under ~60 characters. Each PR should describe the motivation, list the user-visible behavior changes, and paste key command output (`make test`, `cargo fmt`, or sample `ai-cli-installer list`). Link the relevant issue or TODO entry, call out any new dependencies, and attach screenshots or terminal transcripts when modifying interactive flows.
+Recent history shows concise, imperative subjects such as `claude install & uninstall`; continue that format and keep summaries under ~60 characters. Each PR should describe the motivation, list the user-visible behavior changes, and paste key command output (`make test`, `cargo fmt`, or sample `ai-cli-apps list`). Link the relevant issue or TODO entry, call out any new dependencies, and attach screenshots or terminal transcripts when modifying interactive flows.
 
 ## Security & Configuration Tips
 
