@@ -1,6 +1,6 @@
-# Tool Support Status
+# Completed Tool Support
 
-This document tracks the implementation status for each AI CLI tool across different operations.
+This document tracks AI CLI tools that have been fully implemented.
 
 **⚠️ Note: Currently supports macOS only**
 
@@ -8,8 +8,6 @@ This document tracks the implementation status for each AI CLI tool across diffe
 
 - ✅ Implemented
 - ⚠️ Partial/Needs work
-- ❌ Not implemented
-- 🔍 Research needed
 
 ## Amp
 
@@ -114,12 +112,3 @@ This document tracks the implementation status for each AI CLI tool across diffe
 | Install                  | ✅ Implemented     | `npm install -g cline` |
 | Uninstall                | ✅ Implemented     | `npm uninstall -g cline` |
 | Upgrade                  | ✅ Implemented     | `npm install -g cline` |
-
-## Next Steps
-
-1. ✅ ~~Research Cursor CLI (`cursor-agent`) - verify version check, install, uninstall, upgrade commands~~ (Done)
-2. ✅ ~~Research Amp's uninstall process~~ (Done)
-3. ✅ ~~Research Claude Code install/uninstall/upgrade process~~ (Done)
-4. ✅ ~~Implement install/uninstall commands for remaining tools~~ (Done)
-5. ✅ ~~Research upgrade commands for remaining tools~~ (Done)
-6. ✅ ~~Implement upgrade functionality in the CLI~~ (Done)
