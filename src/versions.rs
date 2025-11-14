@@ -44,11 +44,15 @@ struct BrewCask {
     version: String,
 }
 
-async fn get_npm_latest(package: &str) -> Option<String> {
-    let url = format!("https://registry.npmjs.org/{}", package);
-    let response = reqwest::get(&url).await.ok()?;
+async fn fetch_npm_latest(url: &str) -> Option<String> {
+    let response = reqwest::get(url).await.ok()?;
     let info: NpmPackageInfo = response.json().await.ok()?;
     Some(info.dist_tags.latest)
+}
+
+async fn get_npm_latest(package: &str) -> Option<String> {
+    let url = format!("https://registry.npmjs.org/{}", package);
+    fetch_npm_latest(&url).await
 }
 
 async fn get_github_latest(repo: &str) -> Option<String> {
@@ -179,4 +183,26 @@ pub fn print_version(tool: &ToolVersion, check_latest: bool) {
     };
 
     println!("{:15} {}", format!("{}:", tool.name).bold(), status);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::fetch_npm_latest;
+    use httpmock::prelude::*;
+
+    #[tokio::test]
+    async fn it_fetches_latest_from_npm_dist_tags() {
+        let server = MockServer::start_async().await;
+        let _mock = server
+            .mock_async(|when, then| {
+                when.method(GET).path("/@github/copilot");
+                then.status(200)
+                    .header("content-type", "application/json")
+                    .body(r#"{"dist-tags":{"latest":"0.0.357"}}"#);
+            })
+            .await;
+
+        let latest = fetch_npm_latest(&format!("{}/@github/copilot", server.base_url())).await;
+        assert_eq!(latest.as_deref(), Some("0.0.357"));
+    }
 }
