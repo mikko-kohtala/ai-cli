@@ -9,7 +9,13 @@ use crate::tools::ToolVersion;
 
 #[derive(Deserialize)]
 struct NpmPackageInfo {
-    version: String,
+    #[serde(rename = "dist-tags")]
+    dist_tags: NpmDistTags,
+}
+
+#[derive(Deserialize)]
+struct NpmDistTags {
+    latest: String,
 }
 
 #[derive(Deserialize)]
@@ -20,6 +26,7 @@ struct GitHubRelease {
 #[derive(Deserialize)]
 struct BrewInfo {
     formulae: Vec<BrewFormula>,
+    casks: Vec<BrewCask>,
 }
 
 #[derive(Deserialize)]
@@ -32,11 +39,16 @@ struct BrewVersions {
     stable: Option<String>,
 }
 
+#[derive(Deserialize)]
+struct BrewCask {
+    version: String,
+}
+
 async fn get_npm_latest(package: &str) -> Option<String> {
     let url = format!("https://registry.npmjs.org/{}", package);
     let response = reqwest::get(&url).await.ok()?;
     let info: NpmPackageInfo = response.json().await.ok()?;
-    Some(info.version)
+    Some(info.dist_tags.latest)
 }
 
 async fn get_github_latest(repo: &str) -> Option<String> {
@@ -52,6 +64,14 @@ async fn get_github_latest(repo: &str) -> Option<String> {
     Some(release.tag_name)
 }
 
+fn update_brew() -> bool {
+    Command::new("brew")
+        .args(["update"])
+        .output()
+        .map(|output| output.status.success())
+        .unwrap_or(false)
+}
+
 async fn get_brew_latest(formula: &str) -> Option<String> {
     let formula = formula.to_string();
     task::spawn_blocking(move || {
@@ -63,7 +83,14 @@ async fn get_brew_latest(formula: &str) -> Option<String> {
             return None;
         }
         let info: BrewInfo = serde_json::from_slice(&output.stdout).ok()?;
-        info.formulae.into_iter().next()?.versions.stable
+
+        // Check formulae first
+        if let Some(formula_version) = info.formulae.into_iter().next().and_then(|f| f.versions.stable) {
+            return Some(formula_version);
+        }
+
+        // Fall back to casks
+        info.casks.into_iter().next().map(|c| c.version)
     })
     .await
     .ok()
@@ -72,6 +99,15 @@ async fn get_brew_latest(formula: &str) -> Option<String> {
 
 pub async fn check_latest_versions(tools: &mut [ToolVersion]) {
     println!("{}", "Checking latest versions...".cyan());
+
+    // Update Homebrew package database before checking versions
+    task::spawn_blocking(|| {
+        if update_brew() {
+            println!("{}", "Updated Homebrew package database".dimmed());
+        }
+    })
+    .await
+    .ok();
 
     let sources = vec![
         (

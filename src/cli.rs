@@ -2,11 +2,17 @@ use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(name = "ai-cli-apps")]
+#[command(arg_required_else_help = false)]
 #[command(
     about = "Check and manage AI CLI tools versions",
-    long_about = "Check and manage AI CLI tools versions\n\nSupported tools:\n  Claude Code (claude)\n  Amp (amp)\n  Codex (codex)\n  Cursor (cursor)\n  Copilot CLI (copilot)\n  Kilo (kilo)\n  Gemini (gemini)\n  Cline (cline)"
+    long_about = "Check and manage AI CLI tools versions\n\nSupported tools:\n  Claude Code (claude)\n  Amp (amp)\n  Codex (codex)\n  Cursor (cursor)\n  Copilot CLI (copilot)\n  Kilo (kilo)\n  Gemini (gemini)\n  Cline (cline)",
+    version
 )]
 pub struct Cli {
+    /// Print version
+    #[arg(short = 'v', long, action = clap::ArgAction::Version)]
+    version: Option<bool>,
+
     #[command(subcommand)]
     pub command: Option<Commands>,
 }
