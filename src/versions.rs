@@ -150,10 +150,7 @@ pub async fn check_latest_versions(tools: &mut [ToolVersion]) {
             tokio::spawn(get_npm_latest("@kilocode/cli")),
         ),
         ("OpenCode", tokio::spawn(get_brew_latest("opencode"))),
-        (
-            "Factory CLI (droid)",
-            tokio::spawn(get_factory_cli_latest()),
-        ),
+        ("Factory CLI", tokio::spawn(get_factory_cli_latest())),
     ];
 
     let resolved = join_all(
@@ -172,7 +169,7 @@ pub async fn check_latest_versions(tools: &mut [ToolVersion]) {
     }
 }
 
-pub fn print_version(tool: &ToolVersion, check_latest: bool, width: usize) {
+pub fn print_version(tool: &ToolVersion, check_latest: bool, label_width: usize, id_width: usize) {
     let status = match &tool.installed {
         Some(version) => {
             let version_str = version.to_string();
@@ -207,9 +204,23 @@ pub fn print_version(tool: &ToolVersion, check_latest: bool, width: usize) {
         }
     };
 
-    let padding = width.saturating_sub(tool.name.len());
-    let spacer = " ".repeat(padding + 1);
-    println!("{}{}{}", format!("{}:", tool.name).bold(), spacer, status);
+    let name_padding = label_width.saturating_sub(tool.name.len());
+    let name_spacer = " ".repeat(name_padding + 1);
+    let identifier = tool
+        .identifier
+        .as_deref()
+        .unwrap_or_else(|| tool.name.as_str());
+    let id_padding = id_width.saturating_sub(identifier.len());
+    let id_spacer = " ".repeat(id_padding + 1);
+
+    println!(
+        "{}{}{}{}{}",
+        format!("{}:", tool.name).bold(),
+        name_spacer,
+        identifier.bright_black(),
+        id_spacer,
+        status
+    );
 }
 
 #[cfg(test)]

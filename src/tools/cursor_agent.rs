@@ -12,5 +12,7 @@ pub fn definition() -> Tool {
 pub fn installed_version() -> ToolVersion {
     let installed = command_output("cursor-agent", &["--version"])
         .and_then(|output| output.lines().next().map(|line| line.to_string()));
-    ToolVersion::new("Cursor CLI").with_installed(installed)
+    ToolVersion::new("Cursor CLI")
+        .with_installed(installed)
+        .with_identifier("cursor-agent")
 }

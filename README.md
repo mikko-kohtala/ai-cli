@@ -53,7 +53,7 @@ ai-cli-apps remove claude
 - **Gemini CLI**
 - **Cline CLI**
 - **OpenCode**
-- **Factory CLI (droid)**
+- **Factory CLI**
 
 ## Development
 

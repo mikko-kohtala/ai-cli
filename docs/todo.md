@@ -24,7 +24,7 @@ This document tracks the implementation status for AI CLI tools that need work.
 | Uninstall                | ✅ Implemented     | Remove `~/.opencode/bin/opencode` + optional config                                                        |
 | Upgrade                  | ✅ Implemented     | Re-run install script                                                                                      |
 
-## Factory CLI (droid)
+## Factory CLI
 
 **Documentation**: [Docs](https://factory.ai/product/cli)
 

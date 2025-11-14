@@ -11,5 +11,7 @@ pub fn definition() -> Tool {
 
 pub fn installed_version() -> ToolVersion {
     let installed = command_output("gemini", &["--version"]);
-    ToolVersion::new("Gemini CLI").with_installed(installed)
+    ToolVersion::new("Gemini CLI")
+        .with_installed(installed)
+        .with_identifier("gemini")
 }

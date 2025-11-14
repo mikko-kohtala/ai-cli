@@ -25,5 +25,7 @@ pub fn installed_version() -> ToolVersion {
                 })
             })
     });
-    ToolVersion::new("Cline CLI").with_installed(installed)
+    ToolVersion::new("Cline CLI")
+        .with_installed(installed)
+        .with_identifier("cline")
 }

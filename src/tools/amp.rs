@@ -15,5 +15,7 @@ pub fn installed_version() -> ToolVersion {
             .next()
             .map(|l| l.split(" (released").next().unwrap_or(l).to_string())
     });
-    ToolVersion::new("Amp").with_installed(installed)
+    ToolVersion::new("Amp")
+        .with_installed(installed)
+        .with_identifier("amp")
 }

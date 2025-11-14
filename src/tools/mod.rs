@@ -89,6 +89,7 @@ pub struct ToolVersion {
     pub name: String,
     pub installed: Option<String>,
     pub latest: Option<String>,
+    pub identifier: Option<String>,
 }
 
 impl ToolVersion {
@@ -97,11 +98,17 @@ impl ToolVersion {
             name: name.to_string(),
             installed: None,
             latest: None,
+            identifier: None,
         }
     }
 
     pub fn with_installed(mut self, version: Option<String>) -> Self {
         self.installed = version;
+        self
+    }
+
+    pub fn with_identifier(mut self, identifier: &str) -> Self {
+        self.identifier = Some(identifier.to_string());
         self
     }
 }

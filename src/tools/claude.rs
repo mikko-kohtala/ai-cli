@@ -15,5 +15,7 @@ pub fn definition() -> Tool {
 pub fn installed_version() -> ToolVersion {
     let installed = command_output("claude", &["--version"])
         .and_then(|s| s.lines().next().map(|l| l.replace(" (Claude Code)", "")));
-    ToolVersion::new("Claude Code").with_installed(installed)
+    ToolVersion::new("Claude Code")
+        .with_installed(installed)
+        .with_identifier("claude")
 }

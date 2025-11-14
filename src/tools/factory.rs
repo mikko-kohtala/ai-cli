@@ -2,7 +2,7 @@ use super::{InstallMethod, Tool, ToolVersion, command_output};
 
 pub fn definition() -> Tool {
     Tool::new(
-        "Factory CLI (droid)",
+        "Factory CLI",
         InstallMethod::Bootstrap("https://app.factory.ai/cli".to_string()),
         vec!["droid".to_string(), "--version".to_string()],
     )
@@ -33,5 +33,7 @@ pub fn installed_version() -> ToolVersion {
             })
             .last()
     });
-    ToolVersion::new("Factory CLI (droid)").with_installed(installed)
+    ToolVersion::new("Factory CLI")
+        .with_installed(installed)
+        .with_identifier("droid")
 }
