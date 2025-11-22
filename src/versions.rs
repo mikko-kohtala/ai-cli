@@ -121,6 +121,33 @@ async fn get_brew_latest(formula: &str) -> Option<String> {
     .flatten()
 }
 
+fn is_newer_version(latest: &str, installed: &str) -> bool {
+    // Extract numeric parts from version strings
+    let parse_version = |v: &str| -> Vec<u32> {
+        v.trim_start_matches('v')
+            .split('.')
+            .filter_map(|s| s.parse::<u32>().ok())
+            .collect()
+    };
+
+    let latest_parts = parse_version(latest);
+    let installed_parts = parse_version(installed);
+
+    // Compare version parts
+    for i in 0..latest_parts.len().max(installed_parts.len()) {
+        let latest_part = latest_parts.get(i).copied().unwrap_or(0);
+        let installed_part = installed_parts.get(i).copied().unwrap_or(0);
+
+        if latest_part > installed_part {
+            return true;
+        } else if latest_part < installed_part {
+            return false;
+        }
+    }
+
+    false
+}
+
 pub async fn check_latest_versions(tools: &mut [ToolVersion]) {
     let spinner = ProgressBar::new_spinner();
     spinner.set_style(
@@ -186,12 +213,14 @@ pub fn print_version(tool: &ToolVersion, check_latest: bool, label_width: usize,
                 if let Some(latest) = &tool.latest {
                     if version.contains(latest) || latest.contains(version) {
                         version_str.green().to_string()
-                    } else {
+                    } else if is_newer_version(latest, version) {
                         format!(
                             "{} → {} available",
                             version_str.yellow(),
                             latest.bright_blue()
                         )
+                    } else {
+                        version_str.green().to_string()
                     }
                 } else {
                     version_str.green().to_string()
