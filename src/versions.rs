@@ -20,11 +20,6 @@ struct NpmDistTags {
 }
 
 #[derive(Deserialize)]
-struct GitHubRelease {
-    tag_name: String,
-}
-
-#[derive(Deserialize)]
 struct BrewInfo {
     formulae: Vec<BrewFormula>,
     casks: Vec<BrewCask>,
@@ -68,19 +63,6 @@ async fn fetch_npm_latest(url: &str) -> Option<String> {
 async fn get_npm_latest(package: &str) -> Option<String> {
     let url = format!("https://registry.npmjs.org/{}", package);
     fetch_npm_latest(&url).await
-}
-
-async fn get_github_latest(repo: &str) -> Option<String> {
-    let url = format!("https://api.github.com/repos/{}/releases/latest", repo);
-    let client = reqwest::Client::new();
-    let response = client
-        .get(&url)
-        .header("User-Agent", "ai-cli-apps")
-        .send()
-        .await
-        .ok()?;
-    let release: GitHubRelease = response.json().await.ok()?;
-    Some(release.tag_name)
 }
 
 fn update_brew() -> bool {
@@ -169,7 +151,7 @@ pub async fn check_latest_versions(tools: &mut [ToolVersion]) {
     let sources = vec![
         (
             "Claude Code",
-            tokio::spawn(get_github_latest("anthropics/anthropic-quickstarts")),
+            tokio::spawn(get_npm_latest("@anthropic-ai/claude-code")),
         ),
         ("Amp", tokio::spawn(get_npm_latest("@sourcegraph/amp"))),
         ("Codex CLI", tokio::spawn(get_brew_latest("codex"))),

@@ -30,10 +30,10 @@ This document tracks AI CLI tools that have been fully implemented.
 | ------------------------ | -------------- | ------------------------------------------------- |
 | Version Check            | ✅ Implemented | `claude --version`                                |
 | Current Version          | ✅ Implemented | Parse CLI output                                  |
-| Latest Available Version | ✅ Implemented | GitHub releases                                   |
-| Install                  | ✅ Implemented | `curl -fsSL https://claude.ai/install.sh \| bash` |
-| Uninstall                | ✅ Implemented | Removes binary, versions, and config (optional)   |
-| Upgrade                  | ✅ Implemented | Re-install via bootstrap script                   |
+| Latest Available Version | ✅ Implemented | npm registry                                              |
+| Install                  | ✅ Implemented | `npm install -g @anthropic-ai/claude-code`                |
+| Uninstall                | ✅ Implemented | Removes binary, versions, and config (optional)           |
+| Upgrade                  | ✅ Implemented | `npm install -g @anthropic-ai/claude-code`                |
 
 ## Codex CLI
 
