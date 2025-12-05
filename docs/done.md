@@ -95,10 +95,10 @@ This document tracks AI CLI tools that have been fully implemented.
 | ------------------------ | -------------- | -------------------------------- |
 | Version Check            | ✅ Implemented | `gemini --version`               |
 | Current Version          | ✅ Implemented | Parse CLI output                 |
-| Latest Available Version | ✅ Implemented | `brew info --json=v2 gemini-cli` |
-| Install                  | ✅ Implemented | `brew install gemini-cli`        |
-| Uninstall                | ✅ Implemented | `brew uninstall gemini-cli`      |
-| Upgrade                  | ✅ Implemented | `brew upgrade gemini-cli`        |
+| Latest Available Version | ✅ Implemented | npm registry                           |
+| Install                  | ✅ Implemented | `npm install -g @google/gemini-cli`    |
+| Uninstall                | ✅ Implemented | `npm uninstall -g @google/gemini-cli`  |
+| Upgrade                  | ✅ Implemented | `npm install -g @google/gemini-cli`    |
 
 ## Cline CLI
 
