@@ -1,9 +1,11 @@
 use crate::tools::{self, InstallMethod, Tool};
+use crate::versions::{check_latest_versions, is_newer_version};
 use anyhow::{Context, Result};
 use colored::*;
 use inquire::MultiSelect;
 use std::{
-    fs, io,
+    fs,
+    io::{self, Write},
     path::{Path, PathBuf},
     process::Command,
 };
@@ -160,10 +162,69 @@ pub async fn handle_upgrade_command(tool_name: Option<&str>) -> Result<()> {
     let tools = tools::catalog();
 
     let Some(name) = tool_name else {
-        println!(
-            "{} Specify a tool to upgrade, e.g., `ai-cli-apps upgrade amp`.",
-            "!".yellow()
+        // Get installed versions and check for latest
+        let mut versions = tools::installed_versions();
+        check_latest_versions(&mut versions).await;
+
+        // Find tools with updates available
+        let updates_available: Vec<(&Tool, &str, &str)> = versions
+            .iter()
+            .filter_map(|v| {
+                let installed = v.installed.as_ref()?;
+                let latest = v.latest.as_ref()?;
+                if is_newer_version(latest, installed) {
+                    // Find the corresponding Tool from catalog
+                    let tool = tools.iter().find(|t| t.name == v.name)?;
+                    Some((tool, installed.as_str(), latest.as_str()))
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        if updates_available.is_empty() {
+            println!("{} All tools are up to date!", "✓".green());
+            return Ok(());
+        }
+
+        // List tools with updates
+        println!("Updates available:");
+        for (tool, installed, latest) in &updates_available {
+            println!(
+                "  {} {} {} → {}",
+                "•".cyan(),
+                tool.name,
+                installed.yellow(),
+                latest.bright_blue()
+            );
+        }
+        println!();
+
+        // Ask for confirmation
+        print!(
+            "{} Update {} {}? [y/N] ",
+            "?".yellow(),
+            updates_available.len(),
+            if updates_available.len() == 1 { "tool" } else { "tools" }
         );
+        io::stdout().flush()?;
+
+        let mut input = String::new();
+        io::stdin().read_line(&mut input)?;
+
+        if !input.trim().eq_ignore_ascii_case("y") {
+            println!("Cancelled.");
+            return Ok(());
+        }
+
+        // Update tools with available updates
+        println!();
+        for (tool, _, _) in updates_available {
+            upgrade_tool(tool).await?;
+            println!();
+        }
+
+        println!("{} All updates complete!", "✓".green());
         return Ok(());
     };
 

@@ -103,7 +103,7 @@ async fn get_brew_latest(formula: &str) -> Option<String> {
     .flatten()
 }
 
-fn is_newer_version(latest: &str, installed: &str) -> bool {
+pub fn is_newer_version(latest: &str, installed: &str) -> bool {
     // Extract numeric parts from version strings
     let parse_version = |v: &str| -> Vec<u32> {
         v.trim_start_matches('v')
