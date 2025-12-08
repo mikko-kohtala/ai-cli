@@ -238,7 +238,7 @@ pub async fn handle_upgrade_command(tool_name: Option<&str>) -> Result<()> {
 
     if !tool.is_installed() {
         println!(
-            "{} {} is not installed. Run `ai-cli-apps install {}` first.",
+            "{} {} is not installed. Run `ai-cli apps install {}` first.",
             "!".yellow(),
             tool.name,
             name

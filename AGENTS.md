@@ -2,14 +2,17 @@
 
 ## Project Structure & Module Organization
 
-ai-cli-apps is a single binary crate. Structure: `src/main.rs` (entry), `src/cli.rs` (arg parsing), `src/actions.rs` (command logic), `src/versions.rs` (version checking/display), `src/tools/*.rs` (per-tool definitions). Dependencies in `Cargo.toml` (edition 2024). Use `Makefile` for builds, `README.md` for examples, `docs/todo.md` for roadmap. Build outputs in `target/`; never commit binaries.
+ai-cli is a single binary crate. Structure: `src/main.rs` (entry), `src/cli.rs` (arg parsing), `src/actions.rs` (apps command logic), `src/versions.rs` (version checking/display), `src/tools/*.rs` (per-tool definitions for apps), `src/mcp/` (MCP server management). Dependencies in `Cargo.toml` (edition 2024). Use `Makefile` for builds, `README.md` for examples. Build outputs in `target/`; never commit binaries.
+
+MCP module: `src/mcp/servers.rs` (server definitions), `src/mcp/targets.rs` (target tool configs with JSON/TOML handling), `src/mcp/actions.rs` (enable/disable/list/doctor handlers).
 
 ## Build, Test, and Development Commands
 
-- `make build` – `cargo build --release` into `target/release/ai-cli-apps`.
+- `make build` – `cargo build --release` into `target/release/ai-cli`.
 - `make install` – rebuilds then installs into your Cargo bin for smoke tests.
 - `make test` – executes the Rust test suite; run before every PR.
-- `cargo run -- list` / `cargo run -- install claude` – exercise CLI flows without global installs.
+- `cargo run -- apps list` / `cargo run -- apps install claude` – exercise apps CLI flows.
+- `cargo run -- mcp list` / `cargo run -- mcp enable linear` – exercise MCP CLI flows.
 - `cargo fmt && cargo clippy --all-targets --all-features -D warnings` – enforce formatting and lint cleanliness.
 
 ## Coding Style & Naming Conventions
@@ -22,7 +25,7 @@ Place unit tests beside the code under `#[cfg(test)] mod tests` and name cases w
 
 ## Commit & Pull Request Guidelines
 
-Recent history shows concise, imperative subjects such as `claude install & uninstall`; continue that format and keep summaries under ~60 characters. Each PR should describe the motivation, list the user-visible behavior changes, and paste key command output (`make test`, `cargo fmt`, or sample `ai-cli-apps list`). Link the relevant issue or TODO entry, call out any new dependencies, and attach screenshots or terminal transcripts when modifying interactive flows.
+Recent history shows concise, imperative subjects such as `claude install & uninstall`; continue that format and keep summaries under ~60 characters. Each PR should describe the motivation, list the user-visible behavior changes, and paste key command output (`make test`, `cargo fmt`, or sample `ai-cli apps list`). Link the relevant issue or TODO entry, call out any new dependencies, and attach screenshots or terminal transcripts when modifying interactive flows.
 
 ## Security & Configuration Tips
 

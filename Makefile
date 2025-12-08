@@ -1,4 +1,4 @@
-# Makefile for ai-cli-apps
+# Makefile for ai-cli
 # Run common development tasks
 
 .PHONY: check fmt fmt-fix clippy test build install clean run help

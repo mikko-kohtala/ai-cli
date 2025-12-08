@@ -1,4 +1,4 @@
-# ai-cli-apps
+# ai-cli
 
 A Rust-based CLI tool to manage AI development tools from the command line.
 
@@ -10,39 +10,32 @@ make install
 
 ## Commands
 
-### Check Versions
+### Apps - Manage AI CLI Tools
 
 ```bash
-ai-cli-apps          # Show installed versions
-ai-cli-apps list     # Show installed versions (alias)
-ai-cli-apps check    # Show installed versions (alias)
+ai-cli apps              # Show installed versions
+ai-cli apps list         # Show installed versions (alias)
+ai-cli apps check        # Check latest versions available
+ai-cli apps install      # Interactive install
+ai-cli apps install amp  # Direct install
+ai-cli apps update       # Interactive update
+ai-cli apps uninstall    # Interactive uninstall
 ```
 
-### Install Tools
+### MCP - Manage MCP Servers
 
 ```bash
-# Interactive mode - select from a menu
-ai-cli-apps install
-ai-cli-apps add       # Alias for install
-
-# Direct installation - specify tool name
-ai-cli-apps install claude
-ai-cli-apps add claude
+ai-cli mcp                    # List servers and status
+ai-cli mcp list               # List servers and status (alias)
+ai-cli mcp enable linear      # Enable Linear MCP server
+ai-cli mcp enable playwright  # Enable Playwright MCP server
+ai-cli mcp enable all         # Enable all servers
+ai-cli mcp disable linear     # Disable Linear MCP server
+ai-cli mcp disable all        # Disable all servers
+ai-cli mcp doctor             # Show tool config paths
 ```
 
-### Uninstall Tools
-
-```bash
-# Interactive mode - select from a menu
-ai-cli-apps uninstall
-ai-cli-apps remove    # Alias for uninstall
-
-# Direct uninstallation - specify tool name
-ai-cli-apps uninstall claude
-ai-cli-apps remove claude
-```
-
-## Supported Tools
+## Supported Tools (Apps)
 
 - **Amp**
 - **Claude Code**
@@ -54,6 +47,11 @@ ai-cli-apps remove claude
 - **Cline CLI**
 - **OpenCode**
 - **Factory CLI**
+
+## Supported MCP Servers
+
+- **Linear** - Issue tracking integration
+- **Playwright** - Browser automation
 
 ## Development
 

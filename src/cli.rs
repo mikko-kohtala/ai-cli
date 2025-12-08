@@ -1,14 +1,10 @@
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "ai-cli-apps")]
-#[command(arg_required_else_help = false)]
+#[command(name = "ai-cli")]
+#[command(arg_required_else_help = true)]
 #[command(disable_version_flag = true)]
-#[command(
-    about = "Check and manage AI CLI tools versions",
-    long_about = "Check and manage AI CLI tools versions\n\nSupported tools:\n  Claude Code (claude)\n  Amp (amp)\n  Codex (codex)\n  Cursor (cursor)\n  Copilot CLI (copilot)\n  Kilo (kilo)\n  Gemini (gemini)\n  Cline (cline)\n  OpenCode (opencode)\n  Factory CLI (droid)",
-    version
-)]
+#[command(about = "AI CLI tools", version)]
 pub struct Cli {
     /// Print version
     #[arg(short = 'v', long, action = clap::ArgAction::Version)]
@@ -20,6 +16,22 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
+    /// Manage AI CLI tools (install, update, uninstall)
+    #[command(arg_required_else_help = false)]
+    Apps {
+        #[command(subcommand)]
+        command: Option<AppsCommands>,
+    },
+    /// Manage MCP servers across AI CLI tools
+    #[command(arg_required_else_help = false)]
+    Mcp {
+        #[command(subcommand)]
+        command: Option<McpCommands>,
+    },
+}
+
+#[derive(Subcommand)]
+pub enum AppsCommands {
     /// Check latest versions available
     Check,
     /// Upgrade AI CLI tools (optionally specify tool name, e.g., 'amp')
@@ -66,4 +78,22 @@ pub enum Commands {
     },
     /// List installed AI CLI tools (alias for default command)
     List,
+}
+
+#[derive(Subcommand)]
+pub enum McpCommands {
+    /// List MCP servers and their status across tools
+    List,
+    /// Enable an MCP server across all installed tools
+    Enable {
+        /// Server to enable (e.g., 'linear', 'playwright', or 'all')
+        server: String,
+    },
+    /// Disable an MCP server across all installed tools
+    Disable {
+        /// Server to disable (e.g., 'linear', 'playwright', or 'all')
+        server: String,
+    },
+    /// Show installed tools and their config paths
+    Doctor,
 }
