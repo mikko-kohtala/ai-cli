@@ -19,8 +19,8 @@ async fn main() -> Result<()> {
 
     match cli.command {
         Some(Commands::Apps { command }) => {
-            println!("\n{}", "🤖 AI Tools Manager".bright_cyan().bold());
-            println!("{}\n", "=".repeat(19).bright_cyan());
+            println!("\n{}", "🤖 AI CLI - Tools".bright_cyan().bold());
+            println!("{}\n", "=".repeat(17).bright_cyan());
 
             match command {
                 None | Some(AppsCommands::List) => {
@@ -125,8 +125,8 @@ async fn main() -> Result<()> {
             println!();
         }
         Some(Commands::Mcp { command }) => {
-            println!("\n{}", "🔌 MCP Server Manager".bright_cyan().bold());
-            println!("{}\n", "=".repeat(21).bright_cyan());
+            println!("\n{}", "🔌 AI CLI - MCP Servers".bright_cyan().bold());
+            println!("{}\n", "=".repeat(23).bright_cyan());
 
             match command {
                 None | Some(McpCommands::List) => {
