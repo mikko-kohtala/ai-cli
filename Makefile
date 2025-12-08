@@ -1,7 +1,7 @@
 # Makefile for ai-cli
 # Run common development tasks
 
-.PHONY: check fmt fmt-fix clippy test build install clean run help
+.PHONY: check fmt fmt-fix clippy test build install clean run doctor help
 
 # Run all checks (format, lint, test)
 check: fmt clippy test
@@ -42,6 +42,10 @@ clean:
 run:
 	@cargo run
 
+# Run doctor diagnostics
+doctor:
+	@cargo run -- mcp doctor
+
 # Show help
 help:
 	@echo "Available targets:"
@@ -54,4 +58,5 @@ help:
 	@echo "  install   - Install binary to system"
 	@echo "  clean     - Clean build artifacts"
 	@echo "  run       - Run the application"
+	@echo "  doctor    - Run doctor diagnostics"
 	@echo "  help      - Show this help message"

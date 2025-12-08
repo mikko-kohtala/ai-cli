@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::process::Command;
 
 use anyhow::{Context, Result};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use super::servers::McpServer;
 
@@ -344,7 +344,7 @@ fn is_enabled_in_json(path: &PathBuf, servers_key: &str, server_name: &str) -> R
 // TOML config helpers
 
 fn enable_in_toml(path: &PathBuf, server: &McpServer) -> Result<()> {
-    use toml_edit::{value, Array, DocumentMut};
+    use toml_edit::{Array, DocumentMut, value};
 
     let mut doc: DocumentMut = if path.exists() {
         let content = std::fs::read_to_string(path)
@@ -426,4 +426,318 @@ fn is_enabled_in_toml(path: &PathBuf, server: &McpServer) -> Result<bool> {
         .get("mcp_servers")
         .and_then(|t| t.as_table())
         .is_some_and(|t| t.contains_key(server.id)))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    fn test_server() -> McpServer {
+        McpServer::new(
+            "playwright",
+            "Playwright",
+            &["-y", "@playwright/mcp@latest"],
+            "Test server",
+        )
+    }
+
+    fn json_target(
+        path: PathBuf,
+        servers_key: &'static str,
+        type_value: Option<&'static str>,
+    ) -> McpTarget {
+        McpTarget {
+            name: "Test",
+            binary_name: "test",
+            config_method: ConfigMethod::JsonConfig {
+                path,
+                servers_key,
+                server_name_override: None,
+                type_value,
+                include_tools_field: false,
+            },
+        }
+    }
+
+    fn json_target_copilot(path: PathBuf) -> McpTarget {
+        McpTarget {
+            name: "Test Copilot",
+            binary_name: "copilot",
+            config_method: ConfigMethod::JsonConfig {
+                path,
+                servers_key: "mcpServers",
+                server_name_override: None,
+                type_value: Some("local"),
+                include_tools_field: true,
+            },
+        }
+    }
+
+    fn json_target_with_override(
+        path: PathBuf,
+        servers_key: &'static str,
+        override_name: &'static str,
+    ) -> McpTarget {
+        McpTarget {
+            name: "Test",
+            binary_name: "test",
+            config_method: ConfigMethod::JsonConfig {
+                path,
+                servers_key,
+                server_name_override: Some(override_name),
+                type_value: None,
+                include_tools_field: false,
+            },
+        }
+    }
+
+    fn toml_target(path: PathBuf) -> McpTarget {
+        McpTarget {
+            name: "Test TOML",
+            binary_name: "test-toml",
+            config_method: ConfigMethod::TomlConfig { path },
+        }
+    }
+
+    // JSON tests
+
+    #[test]
+    fn json_enable_creates_file_with_type_stdio() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("config.json");
+        let target = json_target(path.clone(), "mcpServers", Some("stdio"));
+        let server = test_server();
+
+        target.enable_server(&server).unwrap();
+
+        let content = std::fs::read_to_string(&path).unwrap();
+        let json: Value = serde_json::from_str(&content).unwrap();
+
+        assert_eq!(json["mcpServers"]["playwright"]["type"], "stdio");
+        assert_eq!(json["mcpServers"]["playwright"]["command"], "npx");
+        assert!(json["mcpServers"]["playwright"]["env"].is_object());
+        assert!(target.is_server_enabled(&server).unwrap());
+    }
+
+    #[test]
+    fn json_enable_creates_file_without_type_field() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("config.json");
+        let target = json_target(path.clone(), "mcpServers", None);
+        let server = test_server();
+
+        target.enable_server(&server).unwrap();
+
+        let content = std::fs::read_to_string(&path).unwrap();
+        let json: Value = serde_json::from_str(&content).unwrap();
+
+        assert_eq!(json["mcpServers"]["playwright"]["command"], "npx");
+        assert!(json["mcpServers"]["playwright"].get("type").is_none());
+        assert!(json["mcpServers"]["playwright"].get("env").is_none());
+    }
+
+    #[test]
+    fn json_enable_copilot_format() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("mcp-config.json");
+        let target = json_target_copilot(path.clone());
+        let server = test_server();
+
+        target.enable_server(&server).unwrap();
+
+        let content = std::fs::read_to_string(&path).unwrap();
+        let json: Value = serde_json::from_str(&content).unwrap();
+
+        assert_eq!(json["mcpServers"]["playwright"]["type"], "local");
+        assert_eq!(json["mcpServers"]["playwright"]["command"], "npx");
+        assert_eq!(json["mcpServers"]["playwright"]["tools"], json!(["*"]));
+        assert!(json["mcpServers"]["playwright"].get("env").is_none());
+        assert!(target.is_server_enabled(&server).unwrap());
+    }
+
+    #[test]
+    fn json_enable_with_flat_dotted_key() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("config.json");
+        let target = json_target(path.clone(), "amp.mcpServers", None);
+        let server = test_server();
+
+        target.enable_server(&server).unwrap();
+
+        let content = std::fs::read_to_string(&path).unwrap();
+        let json: Value = serde_json::from_str(&content).unwrap();
+
+        // Key is "amp.mcpServers" as a flat key, not nested
+        assert_eq!(json["amp.mcpServers"]["playwright"]["command"], "npx");
+        assert!(target.is_server_enabled(&server).unwrap());
+    }
+
+    #[test]
+    fn json_disable_removes_server() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("config.json");
+        let target = json_target(path.clone(), "mcpServers", Some("stdio"));
+        let server = test_server();
+
+        target.enable_server(&server).unwrap();
+        assert!(target.is_server_enabled(&server).unwrap());
+
+        target.disable_server(&server).unwrap();
+        assert!(!target.is_server_enabled(&server).unwrap());
+
+        let content = std::fs::read_to_string(&path).unwrap();
+        let json: Value = serde_json::from_str(&content).unwrap();
+        assert!(json["mcpServers"]["playwright"].is_null());
+    }
+
+    #[test]
+    fn json_disable_nonexistent_file_is_noop() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("nonexistent.json");
+        let target = json_target(path.clone(), "mcpServers", Some("stdio"));
+        let server = test_server();
+
+        // Should not error
+        target.disable_server(&server).unwrap();
+        // File should not be created
+        assert!(!path.exists());
+    }
+
+    #[test]
+    fn json_enable_idempotent() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("config.json");
+        let target = json_target(path.clone(), "mcpServers", Some("stdio"));
+        let server = test_server();
+
+        target.enable_server(&server).unwrap();
+        let content1 = std::fs::read_to_string(&path).unwrap();
+
+        target.enable_server(&server).unwrap();
+        let content2 = std::fs::read_to_string(&path).unwrap();
+
+        assert_eq!(content1, content2);
+    }
+
+    #[test]
+    fn json_server_name_override() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("config.json");
+        let target = json_target_with_override(path.clone(), "mcpServers", "Playwright");
+        let server = test_server();
+
+        target.enable_server(&server).unwrap();
+
+        let content = std::fs::read_to_string(&path).unwrap();
+        let json: Value = serde_json::from_str(&content).unwrap();
+
+        // Should use "Playwright" not "playwright"
+        assert!(json["mcpServers"]["Playwright"]["command"].is_string());
+        assert!(json["mcpServers"]["playwright"].is_null());
+        assert!(target.is_server_enabled(&server).unwrap());
+    }
+
+    // TOML tests
+
+    #[test]
+    fn toml_enable_creates_section() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("config.toml");
+        let target = toml_target(path.clone());
+        let server = test_server();
+
+        target.enable_server(&server).unwrap();
+
+        let content = std::fs::read_to_string(&path).unwrap();
+        assert!(content.contains("[mcp_servers.playwright]"));
+        assert!(content.contains("command = \"npx\""));
+        assert!(target.is_server_enabled(&server).unwrap());
+    }
+
+    #[test]
+    fn toml_disable_removes_section() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("config.toml");
+        let target = toml_target(path.clone());
+        let server = test_server();
+
+        target.enable_server(&server).unwrap();
+        assert!(target.is_server_enabled(&server).unwrap());
+
+        target.disable_server(&server).unwrap();
+        assert!(!target.is_server_enabled(&server).unwrap());
+
+        let content = std::fs::read_to_string(&path).unwrap();
+        assert!(!content.contains("[mcp_servers.playwright]"));
+    }
+
+    #[test]
+    fn toml_preserves_other_sections() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("config.toml");
+        let server = test_server();
+
+        // Write initial config with other sections
+        std::fs::write(&path, "[other]\nkey = \"value\"\n").unwrap();
+
+        let target = toml_target(path.clone());
+        target.enable_server(&server).unwrap();
+
+        let content = std::fs::read_to_string(&path).unwrap();
+        assert!(content.contains("[other]"));
+        assert!(content.contains("key = \"value\""));
+        assert!(content.contains("[mcp_servers.playwright]"));
+    }
+
+    #[test]
+    fn toml_disable_nonexistent_is_noop() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("nonexistent.toml");
+        let target = toml_target(path.clone());
+        let server = test_server();
+
+        target.disable_server(&server).unwrap();
+        assert!(!path.exists());
+    }
+
+    // Full workflow tests
+
+    #[test]
+    fn full_workflow_json() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("config.json");
+        let target = json_target(path, "mcpServers", Some("stdio"));
+        let server = test_server();
+
+        // Initially not enabled
+        assert!(!target.is_server_enabled(&server).unwrap());
+
+        // Enable
+        target.enable_server(&server).unwrap();
+        assert!(target.is_server_enabled(&server).unwrap());
+
+        // Disable
+        target.disable_server(&server).unwrap();
+        assert!(!target.is_server_enabled(&server).unwrap());
+    }
+
+    #[test]
+    fn full_workflow_toml() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("config.toml");
+        let target = toml_target(path);
+        let server = test_server();
+
+        // Initially not enabled
+        assert!(!target.is_server_enabled(&server).unwrap());
+
+        // Enable
+        target.enable_server(&server).unwrap();
+        assert!(target.is_server_enabled(&server).unwrap());
+
+        // Disable
+        target.disable_server(&server).unwrap();
+        assert!(!target.is_server_enabled(&server).unwrap());
+    }
 }

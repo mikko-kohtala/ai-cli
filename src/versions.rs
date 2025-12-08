@@ -159,7 +159,10 @@ pub async fn check_latest_versions(tools: &mut [ToolVersion]) {
             "Copilot CLI",
             tokio::spawn(get_npm_latest("@github/copilot")),
         ),
-        ("Gemini CLI", tokio::spawn(get_npm_latest("@google/gemini-cli"))),
+        (
+            "Gemini CLI",
+            tokio::spawn(get_npm_latest("@google/gemini-cli")),
+        ),
         ("Cline CLI", tokio::spawn(get_npm_latest("cline"))),
         (
             "Kilo Code CLI",

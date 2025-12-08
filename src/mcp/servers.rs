@@ -57,4 +57,3 @@ pub fn catalog() -> Vec<McpServer> {
 pub fn find(id: &str) -> Option<McpServer> {
     catalog().into_iter().find(|s| s.id == id)
 }
-

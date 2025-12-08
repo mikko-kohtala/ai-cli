@@ -79,10 +79,9 @@ pub async fn handle_install_command(tool_name: Option<&str>) -> Result<()> {
                 if let Some(tool) = uninstalled_tools
                     .iter()
                     .find(|t| selection.starts_with(&t.name))
+                    && let Err(e) = install_tool(tool).await
                 {
-                    if let Err(e) = install_tool(tool).await {
-                        println!("{} Failed to install {}: {}", "✗".red(), tool.name, e);
-                    }
+                    println!("{} Failed to install {}: {}", "✗".red(), tool.name, e);
                 }
             }
 
@@ -142,10 +141,10 @@ pub async fn handle_uninstall_command(
             println!("\n{}", "Starting uninstallation...".bright_cyan());
 
             for selection in selections {
-                if let Some(tool) = installed_tools.iter().find(|t| t.name == selection) {
-                    if let Err(e) = uninstall_tool(tool, remove_config, force).await {
-                        println!("{} Failed to uninstall {}: {}", "✗".red(), tool.name, e);
-                    }
+                if let Some(tool) = installed_tools.iter().find(|t| t.name == selection)
+                    && let Err(e) = uninstall_tool(tool, remove_config, force).await
+                {
+                    println!("{} Failed to uninstall {}: {}", "✗".red(), tool.name, e);
                 }
             }
 
@@ -205,7 +204,11 @@ pub async fn handle_upgrade_command(tool_name: Option<&str>) -> Result<()> {
             "{} Update {} {}? [y/N] ",
             "?".yellow(),
             updates_available.len(),
-            if updates_available.len() == 1 { "tool" } else { "tools" }
+            if updates_available.len() == 1 {
+                "tool"
+            } else {
+                "tools"
+            }
         );
         io::stdout().flush()?;
 
@@ -338,11 +341,11 @@ async fn uninstall_tool(tool: &Tool, remove_config: bool, force: bool) -> Result
                 }
             }
 
-            if versions_path.exists() {
-                if let Some(parent) = versions_path.parent() {
-                    fs::remove_dir_all(parent).context("Failed to remove versions directory")?;
-                    removed_items.push(format!("versions: {}", parent.display()));
-                }
+            if versions_path.exists()
+                && let Some(parent) = versions_path.parent()
+            {
+                fs::remove_dir_all(parent).context("Failed to remove versions directory")?;
+                removed_items.push(format!("versions: {}", parent.display()));
             }
 
             if !existing_configs.is_empty() {

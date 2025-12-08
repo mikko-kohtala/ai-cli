@@ -44,8 +44,10 @@ async fn main() -> Result<()> {
                         .map(|t| t.identifier.as_ref().map(|id| id.len()).unwrap_or(0))
                         .max()
                         .unwrap_or(0);
-                    let installed: Vec<_> = tools.iter().filter(|t| t.installed.is_some()).collect();
-                    let not_installed: Vec<_> = tools.iter().filter(|t| t.installed.is_none()).collect();
+                    let installed: Vec<_> =
+                        tools.iter().filter(|t| t.installed.is_some()).collect();
+                    let not_installed: Vec<_> =
+                        tools.iter().filter(|t| t.installed.is_none()).collect();
 
                     let all_up_to_date = installed.iter().all(|t| {
                         if let (Some(installed_ver), Some(latest_ver)) = (&t.installed, &t.latest) {
