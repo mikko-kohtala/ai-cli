@@ -52,7 +52,6 @@ pub async fn handle_install_command(tool_name: Option<&str>) -> Result<()> {
                 match &t.install_method {
                     InstallMethod::Npm(pkg) => format!("npm: {}", pkg),
                     InstallMethod::Bootstrap(_) => "bootstrap".to_string(),
-                    InstallMethod::Brew(formula) => format!("brew: {}", formula),
                     InstallMethod::Amp(_) => "amp installer".to_string(),
                 }
             )
@@ -263,18 +262,6 @@ async fn install_tool(tool: &Tool) -> Result<()> {
         InstallMethod::Amp(url) => {
             run_install_script(url, "amp_install.sh", "Amp installer").await?;
             println!("{} {} installed successfully!", "✓".green(), tool.name);
-        }
-        InstallMethod::Brew(formula) => {
-            let status = Command::new("brew")
-                .args(["install", formula])
-                .status()
-                .context("Failed to run brew install")?;
-
-            if status.success() {
-                println!("{} {} installed successfully!", "✓".green(), tool.name);
-            } else {
-                anyhow::bail!("brew install failed for {}", tool.name);
-            }
         }
         InstallMethod::Npm(package) => {
             let status = Command::new("npm")
@@ -511,18 +498,6 @@ async fn uninstall_tool(tool: &Tool, remove_config: bool, force: bool) -> Result
                 anyhow::bail!("npm uninstall failed for {}", tool.name);
             }
         }
-        InstallMethod::Brew(formula) => {
-            let status = Command::new("brew")
-                .args(["uninstall", formula])
-                .status()
-                .context("Failed to run brew uninstall")?;
-
-            if status.success() {
-                println!("{} {} uninstalled successfully!", "✓".green(), tool.name);
-            } else {
-                anyhow::bail!("brew uninstall failed for {}", tool.name);
-            }
-        }
     }
 
     Ok(())
@@ -544,20 +519,6 @@ async fn upgrade_tool(tool: &Tool) -> Result<()> {
                 Ok(())
             } else {
                 anyhow::bail!("`amp update` failed - see output above for details");
-            }
-        }
-        InstallMethod::Brew(formula) => {
-            println!("{} Running `brew upgrade {}`...", "→".cyan(), formula);
-            let status = Command::new("brew")
-                .args(["upgrade", formula])
-                .status()
-                .context("Failed to run brew upgrade")?;
-
-            if status.success() {
-                println!("{} {} upgraded successfully!", "✓".green(), tool.name);
-                Ok(())
-            } else {
-                anyhow::bail!("brew upgrade failed for {}", tool.name);
             }
         }
         InstallMethod::Npm(package) => {

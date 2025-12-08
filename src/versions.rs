@@ -1,10 +1,9 @@
-use std::{collections::HashMap, process::Command};
+use std::collections::HashMap;
 
 use colored::*;
 use futures::future::join_all;
 use indicatif::{ProgressBar, ProgressStyle};
 use serde::Deserialize;
-use tokio::task;
 
 use crate::tools::ToolVersion;
 
@@ -17,27 +16,6 @@ struct NpmPackageInfo {
 #[derive(Deserialize)]
 struct NpmDistTags {
     latest: String,
-}
-
-#[derive(Deserialize)]
-struct BrewInfo {
-    formulae: Vec<BrewFormula>,
-    casks: Vec<BrewCask>,
-}
-
-#[derive(Deserialize)]
-struct BrewFormula {
-    versions: BrewVersions,
-}
-
-#[derive(Deserialize)]
-struct BrewVersions {
-    stable: Option<String>,
-}
-
-#[derive(Deserialize)]
-struct BrewCask {
-    version: String,
 }
 
 async fn get_factory_cli_latest() -> Option<String> {
@@ -63,44 +41,6 @@ async fn fetch_npm_latest(url: &str) -> Option<String> {
 async fn get_npm_latest(package: &str) -> Option<String> {
     let url = format!("https://registry.npmjs.org/{}", package);
     fetch_npm_latest(&url).await
-}
-
-fn update_brew() -> bool {
-    Command::new("brew")
-        .args(["update"])
-        .output()
-        .map(|output| output.status.success())
-        .unwrap_or(false)
-}
-
-async fn get_brew_latest(formula: &str) -> Option<String> {
-    let formula = formula.to_string();
-    task::spawn_blocking(move || {
-        let output = Command::new("brew")
-            .args(["info", "--json=v2", &formula])
-            .output()
-            .ok()?;
-        if !output.status.success() {
-            return None;
-        }
-        let info: BrewInfo = serde_json::from_slice(&output.stdout).ok()?;
-
-        // Check formulae first
-        if let Some(formula_version) = info
-            .formulae
-            .into_iter()
-            .next()
-            .and_then(|f| f.versions.stable)
-        {
-            return Some(formula_version);
-        }
-
-        // Fall back to casks
-        info.casks.into_iter().next().map(|c| c.version)
-    })
-    .await
-    .ok()
-    .flatten()
 }
 
 pub fn is_newer_version(latest: &str, installed: &str) -> bool {
@@ -139,14 +79,6 @@ pub async fn check_latest_versions(tools: &mut [ToolVersion]) {
     );
     spinner.enable_steady_tick(std::time::Duration::from_millis(80));
 
-    // Update Homebrew package database before checking versions
-    spinner.set_message("Updating Homebrew...");
-    task::spawn_blocking(|| {
-        update_brew();
-    })
-    .await
-    .ok();
-
     spinner.set_message("Fetching versions...");
     let sources = vec![
         (
@@ -154,7 +86,7 @@ pub async fn check_latest_versions(tools: &mut [ToolVersion]) {
             tokio::spawn(get_npm_latest("@anthropic-ai/claude-code")),
         ),
         ("Amp", tokio::spawn(get_npm_latest("@sourcegraph/amp"))),
-        ("Codex CLI", tokio::spawn(get_brew_latest("codex"))),
+        ("Codex CLI", tokio::spawn(get_npm_latest("@openai/codex"))),
         (
             "Copilot CLI",
             tokio::spawn(get_npm_latest("@github/copilot")),
@@ -168,7 +100,7 @@ pub async fn check_latest_versions(tools: &mut [ToolVersion]) {
             "Kilo Code CLI",
             tokio::spawn(get_npm_latest("@kilocode/cli")),
         ),
-        ("OpenCode", tokio::spawn(get_brew_latest("opencode"))),
+        ("OpenCode", tokio::spawn(get_npm_latest("opencode-ai"))),
         ("Factory CLI", tokio::spawn(get_factory_cli_latest())),
     ];
 

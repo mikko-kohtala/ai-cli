@@ -1,6 +1,6 @@
-# AGENTS.md
+# ai-cli
 
-ai-cli manages AI CLI tools and MCP servers across them.
+Manages AI CLI tools and MCP servers.
 
 ## Build Commands
 
@@ -17,7 +17,7 @@ cargo run -- mcp list  # list mcp status
 
 ### Apps (`src/tools/`)
 
-**`Tool`** - installable CLI tool with `InstallMethod` (Npm, Bootstrap, Brew, Amp)
+**`Tool`** - installable CLI tool with `InstallMethod` enum
 
 Adding new tool:
 

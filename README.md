@@ -1,62 +1,56 @@
 # ai-cli
 
-A Rust-based CLI tool to manage AI development tools from the command line.
+Manage AI CLI tools and MCP servers from one place.
+
+## Requirements
+
+- macOS or Linux
+- Node.js (for NPM-based tools)
+- Rust toolchain (to build)
 
 ## Installation
 
 ```bash
+git clone https://github.com/mikko-kohtala/ai-cli.git
+cd ai-cli
 make install
 ```
 
-## Commands
+## Usage
 
-### Apps - Manage AI CLI Tools
-
-```bash
-ai-cli apps              # Show installed versions
-ai-cli apps list         # Show installed versions (alias)
-ai-cli apps check        # Check latest versions available
-ai-cli apps install      # Interactive install
-ai-cli apps install amp  # Direct install
-ai-cli apps update       # Interactive update
-ai-cli apps uninstall    # Interactive uninstall
-```
-
-### MCP - Manage MCP Servers
+### Manage AI CLI Tools
 
 ```bash
-ai-cli mcp                    # List servers and status
-ai-cli mcp list               # List servers and status (alias)
-ai-cli mcp enable linear      # Enable Linear MCP server
-ai-cli mcp enable playwright  # Enable Playwright MCP server
-ai-cli mcp enable all         # Enable all servers
-ai-cli mcp disable linear     # Disable Linear MCP server
-ai-cli mcp disable all        # Disable all servers
-ai-cli mcp doctor             # Show tool config paths
+ai-cli apps                  # list installed tools
+ai-cli apps check            # check for updates
+ai-cli apps install          # install a tool
+ai-cli apps update           # update a tool
+ai-cli apps uninstall        # uninstall a tool
 ```
 
-## Supported Tools (Apps)
-
-- **Amp**
-- **Claude Code**
-- **Codex CLI**
-- **Cursor CLI**
-- **Copilot CLI**
-- **Kilo Code CLI**
-- **Gemini CLI**
-- **Cline CLI**
-- **OpenCode**
-- **Factory CLI**
-
-## Supported MCP Servers
-
-- **Linear** - Issue tracking integration
-- **Playwright** - Browser automation
-
-## Development
+### Manage MCP Servers
 
 ```bash
-make build    # Build release binary
-make clean    # Clean build artifacts
-make test     # Run tests
+ai-cli mcp                   # list MCP server status
+ai-cli mcp enable linear     # enable Linear server
+ai-cli mcp disable linear    # disable Linear server
+ai-cli mcp doctor            # show config file paths
 ```
+
+## Supported Tools
+
+- Amp
+- Claude Code
+- Cline CLI
+- Codex CLI
+- Copilot CLI
+- Cursor CLI
+- Factory CLI
+- Gemini CLI
+- Kilo Code CLI
+- OpenCode
+
+## MCP Servers
+
+- **Linear** - issue tracking
+- **Playwright** - browser automation

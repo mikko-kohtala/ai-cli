@@ -31,7 +31,6 @@ pub enum InstallMethod {
     Npm(String),
     Bootstrap(String),
     Amp(String),
-    Brew(String),
 }
 
 #[derive(Debug, Clone)]

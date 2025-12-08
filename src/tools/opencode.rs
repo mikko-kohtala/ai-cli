@@ -3,7 +3,7 @@ use super::{InstallMethod, Tool, ToolVersion, command_output};
 pub fn definition() -> Tool {
     Tool::new(
         "OpenCode",
-        InstallMethod::Bootstrap("https://opencode.ai/install".to_string()),
+        InstallMethod::Npm("opencode-ai".to_string()),
         vec!["opencode".to_string(), "--version".to_string()],
     )
     .with_binary_name("opencode")

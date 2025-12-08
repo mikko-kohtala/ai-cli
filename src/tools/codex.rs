@@ -3,7 +3,7 @@ use super::{InstallMethod, Tool, ToolVersion, command_output};
 pub fn definition() -> Tool {
     Tool::new(
         "Codex CLI",
-        InstallMethod::Brew("codex".to_string()),
+        InstallMethod::Npm("@openai/codex".to_string()),
         vec!["codex".to_string(), "--version".to_string()],
     )
     .with_binary_name("codex")
