@@ -2,7 +2,7 @@
 
 Manage AI CLI tools and MCP servers from one place.
 
-![ai-cli apps](ai-cli.jpg)
+<img src="ai-cli.jpg" alt="ai-cli apps" width="480">
 
 > **Note:** Currently only supports NPM-installed tools.
 
