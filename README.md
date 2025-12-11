@@ -2,6 +2,10 @@
 
 Manage AI CLI tools and MCP servers from one place.
 
+![ai-cli apps](ai-cli.jpg)
+
+> **Note:** Currently only supports NPM-installed tools.
+
 ## Requirements
 
 - macOS or Linux
