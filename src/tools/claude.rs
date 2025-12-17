@@ -3,7 +3,7 @@ use super::{InstallMethod, Tool, ToolVersion, command_output};
 pub fn definition() -> Tool {
     Tool::new(
         "Claude Code",
-        InstallMethod::Npm("@anthropic-ai/claude-code".to_string()),
+        InstallMethod::Bootstrap("https://claude.ai/install.sh".to_string()),
         vec!["claude".to_string(), "--version".to_string()],
     )
     .with_binary_name("claude")

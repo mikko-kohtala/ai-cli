@@ -537,13 +537,22 @@ async fn upgrade_tool(tool: &Tool) -> Result<()> {
             }
         }
         InstallMethod::Bootstrap(url) => {
-            let is_cursor_agent = tool
-                .binary_name
-                .as_deref()
-                .map(|name| name == "cursor-agent")
-                .unwrap_or(false);
+            let binary_name = tool.binary_name.as_deref().unwrap_or("");
 
-            if is_cursor_agent {
+            if binary_name == "claude" {
+                println!("{} Running `claude update`...", "→".cyan());
+                let status = Command::new("claude")
+                    .arg("update")
+                    .status()
+                    .context("Failed to run claude update")?;
+
+                if status.success() {
+                    println!("{} {} upgraded successfully!", "✓".green(), tool.name);
+                    Ok(())
+                } else {
+                    anyhow::bail!("claude update failed");
+                }
+            } else if binary_name == "cursor-agent" {
                 println!("{} Running `cursor-agent upgrade`...", "→".cyan());
                 let status = Command::new("cursor-agent")
                     .arg("upgrade")
