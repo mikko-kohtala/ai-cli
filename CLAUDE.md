@@ -51,6 +51,7 @@ Adding new MCP target:
 | Amp         | `~/.config/amp/settings.json` |
 | Cursor      | `~/.cursor/mcp.json`          |
 | Copilot CLI | `~/.copilot/mcp-config.json`  |
+| OpenCode    | `~/.opencode`                 |
 
 ## MCP Servers
 
