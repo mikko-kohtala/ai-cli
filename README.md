@@ -4,12 +4,10 @@ Manage AI CLI tools and MCP servers from one place.
 
 <img src="ai-cli.jpg" alt="ai-cli apps" width="480">
 
-> **Note:** Currently only supports NPM-installed tools.
-
 ## Requirements
 
 - macOS or Linux
-- Node.js (for NPM-based tools)
+- Node.js (for NPM-based tools like Codex CLI, Gemini CLI)
 - Rust toolchain (to build)
 
 ## Installation
