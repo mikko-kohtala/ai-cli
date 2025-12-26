@@ -7,6 +7,7 @@ mod cursor_agent;
 mod factory;
 mod gemini;
 mod kilo;
+mod mistral_vibe;
 mod opencode;
 
 use std::process::Command;
@@ -24,6 +25,9 @@ pub use factory::{
 };
 pub use gemini::{definition as gemini_tool, installed_version as gemini_installed_version};
 pub use kilo::{definition as kilo_tool, installed_version as kilo_installed_version};
+pub use mistral_vibe::{
+    definition as mistral_vibe_tool, installed_version as mistral_vibe_installed_version,
+};
 pub use opencode::{definition as opencode_tool, installed_version as opencode_installed_version};
 
 #[derive(Debug, Clone)]
@@ -124,6 +128,7 @@ pub fn catalog() -> Vec<Tool> {
         cline_tool(),
         opencode_tool(),
         factory_cli_tool(),
+        mistral_vibe_tool(),
     ]
 }
 
@@ -139,6 +144,7 @@ pub fn installed_versions() -> Vec<ToolVersion> {
         cline_installed_version(),
         opencode_installed_version(),
         factory_cli_installed_version(),
+        mistral_vibe_installed_version(),
     ]
 }
 

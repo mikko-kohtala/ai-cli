@@ -565,6 +565,19 @@ async fn upgrade_tool(tool: &Tool) -> Result<()> {
                 } else {
                     anyhow::bail!("cursor-agent upgrade failed");
                 }
+            } else if binary_name == "opencode" {
+                println!("{} Running `opencode upgrade`...", "→".cyan());
+                let status = Command::new("opencode")
+                    .arg("upgrade")
+                    .status()
+                    .context("Failed to run opencode upgrade")?;
+
+                if status.success() {
+                    println!("{} {} upgraded successfully!", "✓".green(), tool.name);
+                    Ok(())
+                } else {
+                    anyhow::bail!("opencode upgrade failed");
+                }
             } else {
                 run_install_script(url, "bootstrap_upgrade.sh", "bootstrap script").await?;
                 println!("{} {} upgraded successfully!", "✓".green(), tool.name);

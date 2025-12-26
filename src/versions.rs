@@ -38,6 +38,23 @@ async fn fetch_npm_latest(url: &str) -> Option<String> {
     Some(info.dist_tags.latest)
 }
 
+#[derive(Deserialize)]
+struct PypiPackageInfo {
+    info: PypiInfo,
+}
+
+#[derive(Deserialize)]
+struct PypiInfo {
+    version: String,
+}
+
+async fn get_pypi_latest(package: &str) -> Option<String> {
+    let url = format!("https://pypi.org/pypi/{}/json", package);
+    let response = reqwest::get(&url).await.ok()?;
+    let info: PypiPackageInfo = response.json().await.ok()?;
+    Some(info.info.version)
+}
+
 async fn get_npm_latest(package: &str) -> Option<String> {
     let url = format!("https://registry.npmjs.org/{}", package);
     fetch_npm_latest(&url).await
@@ -102,6 +119,10 @@ pub async fn check_latest_versions(tools: &mut [ToolVersion]) {
         ),
         ("OpenCode", tokio::spawn(get_npm_latest("opencode-ai"))),
         ("Factory CLI", tokio::spawn(get_factory_cli_latest())),
+        (
+            "Mistral Vibe",
+            tokio::spawn(get_pypi_latest("mistral-vibe")),
+        ),
     ];
 
     let resolved = join_all(
