@@ -1,13 +1,14 @@
 mod actions;
 mod cli;
 mod mcp;
+mod skills;
 mod tools;
 mod versions;
 
 use actions::{handle_install_command, handle_uninstall_command, handle_upgrade_command};
 use anyhow::Result;
 use clap::Parser;
-use cli::{AppsCommands, Cli, Commands, McpCommands};
+use cli::{AppsCommands, Cli, Commands, McpCommands, SkillsCommands};
 use colored::*;
 use indicatif::{ProgressBar, ProgressStyle};
 use tools::installed_versions;
@@ -140,6 +141,27 @@ async fn main() -> Result<()> {
                 }
                 Some(McpCommands::Doctor) => {
                     mcp::handle_doctor()?;
+                }
+            }
+
+            println!();
+        }
+        Some(Commands::Skills { command }) => {
+            println!("\n{}", "📚 AI CLI - Skills".bright_cyan().bold());
+            println!("{}\n", "=".repeat(18).bright_cyan());
+
+            match command {
+                None => {
+                    skills::handle_list(None)?;
+                }
+                Some(SkillsCommands::List { agent }) => {
+                    skills::handle_list(agent.as_deref())?;
+                }
+                Some(SkillsCommands::Install { repo, agent }) => {
+                    skills::handle_install(&repo, agent.as_deref())?;
+                }
+                Some(SkillsCommands::Remove { skill, agent }) => {
+                    skills::handle_remove(&skill, agent.as_deref())?;
                 }
             }
 

@@ -28,6 +28,12 @@ pub enum Commands {
         #[command(subcommand)]
         command: Option<McpCommands>,
     },
+    /// Manage skills across AI CLI tools
+    #[command(arg_required_else_help = false)]
+    Skills {
+        #[command(subcommand)]
+        command: Option<SkillsCommands>,
+    },
 }
 
 #[derive(Subcommand)]
@@ -96,4 +102,30 @@ pub enum McpCommands {
     },
     /// Show installed tools and their config paths
     Doctor,
+}
+
+#[derive(Subcommand)]
+pub enum SkillsCommands {
+    /// List installed skills per agent
+    List {
+        /// Filter by specific agent (e.g., 'claude', 'gemini')
+        #[arg(short, long)]
+        agent: Option<String>,
+    },
+    /// Install skill(s) from a git repository
+    Install {
+        /// Repository (owner/repo or full URL)
+        repo: String,
+        /// Target specific agent (e.g., 'claude', 'gemini')
+        #[arg(short, long)]
+        agent: Option<String>,
+    },
+    /// Remove installed skill(s)
+    Remove {
+        /// Skill name to remove
+        skill: String,
+        /// Target specific agent (e.g., 'claude', 'gemini')
+        #[arg(short, long)]
+        agent: Option<String>,
+    },
 }
