@@ -69,11 +69,6 @@ impl Tool {
         self
     }
 
-    pub fn with_extra_binary_path(mut self, path: &str) -> Self {
-        self.extra_binary_paths.push(path.to_string());
-        self
-    }
-
     pub fn is_installed(&self) -> bool {
         if self.check_command.is_empty() {
             return false;

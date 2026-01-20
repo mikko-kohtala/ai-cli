@@ -4,7 +4,7 @@ use std::process::Command;
 use tempfile::TempDir;
 
 use super::agents::{self, SkillAgent};
-use super::discovery;
+use super::discovery::{self, Skill};
 
 /// Handle `skills list` command
 pub fn handle_list(agent_filter: Option<&str>) -> Result<()> {
@@ -14,38 +14,101 @@ pub fn handle_list(agent_filter: Option<&str>) -> Result<()> {
         agents::catalog()
     };
 
-    for agent in &agents {
-        println!("{}", agent.name.bold());
+    // Collect data for installed and not installed agents
+    let mut installed: Vec<(String, Vec<Skill>, Vec<Skill>)> = Vec::new();
+    let mut not_installed: Vec<String> = Vec::new();
 
+    for agent in &agents {
         if !agent.is_installed() {
-            println!("  {}", "(not installed)".dimmed());
-            println!();
+            not_installed.push(agent.name.to_string());
             continue;
         }
+        let local = discovery::list_installed_skills(&agent.local_skills_path())?;
+        let global = discovery::list_installed_skills(&agent.global_skills_path)?;
+        installed.push((agent.name.to_string(), local, global));
+    }
 
-        let skills = discovery::list_installed_skills(&agent.skills_path)?;
+    if installed.is_empty() && not_installed.is_empty() {
+        println!("{}", "No AI agents found".dimmed());
+        return Ok(());
+    }
 
-        if skills.is_empty() {
-            println!("  {}", "(no skills installed)".dimmed());
-        } else {
-            for skill in skills {
-                print!("  {} {}", "-".cyan(), skill.name);
-                if let Some(desc) = &skill.description {
-                    // Truncate description if too long
-                    let truncated = if desc.len() > 60 {
-                        format!("{}...", &desc[..57])
+    // Calculate widths for alignment
+    let agent_width = installed
+        .iter()
+        .map(|(n, _, _)| n.len())
+        .chain(not_installed.iter().map(|n| n.len()))
+        .max()
+        .unwrap_or(0)
+        + 1; // +1 for colon
+    let skill_width = installed
+        .iter()
+        .flat_map(|(_, local, global)| local.iter().chain(global.iter()))
+        .map(|s| s.name.len())
+        .max()
+        .unwrap_or(0);
+
+    // Print installed agents
+    if !installed.is_empty() {
+        println!("{}", "Installed:".bright_green().bold());
+        for (name, local, global) in &installed {
+            if local.is_empty() && global.is_empty() {
+                println!(
+                    "{:width$} {}",
+                    format!("{}:", name),
+                    "(no skills)".dimmed(),
+                    width = agent_width
+                );
+            } else {
+                for (i, skill) in local.iter().chain(global.iter()).enumerate() {
+                    let label = if i == 0 {
+                        format!("{}:", name)
                     } else {
-                        desc.clone()
+                        String::new()
                     };
-                    print!(" - {}", truncated.dimmed());
+                    let is_local = i < local.len();
+                    print_skill(&label, agent_width, skill, is_local, skill_width);
                 }
-                println!();
             }
         }
-        println!();
+    }
+
+    // Print not installed agents
+    if !not_installed.is_empty() {
+        if !installed.is_empty() {
+            println!();
+        }
+        println!("{}", "Not Installed:".bright_black().bold());
+        for name in &not_installed {
+            println!("{:width$}", format!("{}:", name), width = agent_width);
+        }
     }
 
     Ok(())
+}
+
+fn print_skill(label: &str, label_width: usize, skill: &Skill, is_local: bool, skill_width: usize) {
+    let desc = skill
+        .description
+        .as_ref()
+        .map(|d| {
+            let max = 45;
+            if d.len() > max {
+                format!("{}...", &d[..max - 3])
+            } else {
+                d.clone()
+            }
+        })
+        .unwrap_or_default();
+
+    print!("{:label_width$} {:skill_width$}", label, skill.name);
+
+    if is_local {
+        print!("  {}", "(local)".dimmed());
+    } else if !desc.is_empty() {
+        print!("  {}", desc.dimmed());
+    }
+    println!();
 }
 
 /// Handle `skills install <repo>` command
@@ -117,7 +180,7 @@ pub fn handle_install(repo: &str, agent_filter: Option<&str>) -> Result<()> {
 
         // Copy each skill
         for skill in &skills {
-            let dest = agent.skills_path.join(&skill.name);
+            let dest = agent.global_skills_path.join(&skill.name);
 
             // Remove existing skill if present
             if dest.exists() {
@@ -159,7 +222,7 @@ pub fn handle_remove(skill_name: &str, agent_filter: Option<&str>) -> Result<()>
             continue;
         }
 
-        let skill_path = agent.skills_path.join(skill_name);
+        let skill_path = agent.global_skills_path.join(skill_name);
 
         if !skill_path.exists() {
             println!("{}", "[SKIP] Not found".dimmed());
