@@ -11,7 +11,14 @@ pub fn definition() -> Tool {
 
 pub fn installed_version() -> ToolVersion {
     let installed = command_output("copilot", &["--version"])
-        .and_then(|s| s.lines().next().map(|l| l.to_string()));
+        .and_then(|s| s.lines().next().map(|l| l.to_string()))
+        .map(|s| {
+            // Extract version from "GitHub Copilot CLI 0.0.399."
+            s.split_whitespace()
+                .last()
+                .map(|v| v.trim_end_matches('.').to_string())
+                .unwrap_or(s)
+        });
     ToolVersion::new("Copilot CLI")
         .with_installed(installed)
         .with_identifier("copilot")

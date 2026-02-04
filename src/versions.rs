@@ -62,10 +62,15 @@ async fn get_npm_latest(package: &str) -> Option<String> {
 
 pub fn is_newer_version(latest: &str, installed: &str) -> bool {
     // Extract numeric parts from version strings
+    // Handles versions like "0.0.1770150152-ga3a033" by stripping suffixes after '-'
     let parse_version = |v: &str| -> Vec<u32> {
         v.trim_start_matches('v')
             .split('.')
-            .filter_map(|s| s.parse::<u32>().ok())
+            .filter_map(|s| {
+                // Strip any suffix after '-' (e.g., "1770150152-ga3a033" -> "1770150152")
+                let numeric_part = s.split('-').next().unwrap_or(s);
+                numeric_part.parse::<u32>().ok()
+            })
             .collect()
     };
 

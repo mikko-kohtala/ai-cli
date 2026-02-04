@@ -11,7 +11,13 @@ pub fn definition() -> Tool {
 }
 
 pub fn installed_version() -> ToolVersion {
-    let installed = command_output("kimi", &["--version"]);
+    let installed = command_output("kimi", &["--version"]).map(|s| {
+        // Extract version from "kimi, version 1.5"
+        s.split("version")
+            .nth(1)
+            .map(|v| v.trim().to_string())
+            .unwrap_or(s)
+    });
     ToolVersion::new("Kimi CLI")
         .with_installed(installed)
         .with_identifier("kimi")
