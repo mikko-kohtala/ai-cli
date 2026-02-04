@@ -234,6 +234,38 @@ fn copilot_cli() -> McpTarget {
     }
 }
 
+fn kiro_cli() -> McpTarget {
+    McpTarget {
+        name: "Kiro CLI",
+        binary_name: "kiro-cli",
+        config_method: ConfigMethod::JsonConfig {
+            path: dirs::home_dir()
+                .expect("Could not find home directory")
+                .join(".kiro/settings/mcp.json"),
+            servers_key: "mcpServers",
+            server_name_override: None,
+            type_value: None,
+            include_tools_field: false,
+        },
+    }
+}
+
+fn kimi_cli() -> McpTarget {
+    McpTarget {
+        name: "Kimi CLI",
+        binary_name: "kimi",
+        config_method: ConfigMethod::JsonConfig {
+            path: dirs::home_dir()
+                .expect("Could not find home directory")
+                .join(".kimi/mcp.json"),
+            servers_key: "mcpServers",
+            server_name_override: None,
+            type_value: None,
+            include_tools_field: false,
+        },
+    }
+}
+
 /// Returns all supported CLI tools that can have MCP servers configured
 pub fn catalog() -> Vec<McpTarget> {
     vec![
@@ -243,6 +275,8 @@ pub fn catalog() -> Vec<McpTarget> {
         amp(),
         cursor(),
         copilot_cli(),
+        kiro_cli(),
+        kimi_cli(),
     ]
 }
 

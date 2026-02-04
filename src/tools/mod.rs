@@ -7,6 +7,8 @@ mod cursor_agent;
 mod factory;
 mod gemini;
 mod kilo;
+mod kimi;
+mod kiro;
 mod mistral_vibe;
 mod opencode;
 
@@ -25,6 +27,8 @@ pub use factory::{
 };
 pub use gemini::{definition as gemini_tool, installed_version as gemini_installed_version};
 pub use kilo::{definition as kilo_tool, installed_version as kilo_installed_version};
+pub use kimi::{definition as kimi_tool, installed_version as kimi_installed_version};
+pub use kiro::{definition as kiro_tool, installed_version as kiro_installed_version};
 pub use mistral_vibe::{
     definition as mistral_vibe_tool, installed_version as mistral_vibe_installed_version,
 };
@@ -119,6 +123,8 @@ pub fn catalog() -> Vec<Tool> {
         cursor_agent_tool(),
         copilot_tool(),
         kilo_tool(),
+        kimi_tool(),
+        kiro_tool(),
         gemini_tool(),
         cline_tool(),
         opencode_tool(),
@@ -135,6 +141,8 @@ pub fn installed_versions() -> Vec<ToolVersion> {
         cursor_agent_installed_version(),
         copilot_installed_version(),
         kilo_installed_version(),
+        kimi_installed_version(),
+        kiro_installed_version(),
         gemini_installed_version(),
         cline_installed_version(),
         opencode_installed_version(),

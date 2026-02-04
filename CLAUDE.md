@@ -51,6 +51,8 @@ Adding new MCP target:
 | Amp         | `~/.config/amp/settings.json` |
 | Cursor      | `~/.cursor/mcp.json`          |
 | Copilot CLI | `~/.copilot/mcp-config.json`  |
+| Kiro CLI    | `~/.kiro/settings/mcp.json`   |
+| Kimi CLI    | `~/.kimi/mcp.json`            |
 | OpenCode    | `~/.opencode`                 |
 
 ## MCP Servers
