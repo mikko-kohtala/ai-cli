@@ -2,6 +2,7 @@ use crate::tools::{self, InstallMethod, Tool};
 use crate::versions::{check_latest_versions, is_newer_version};
 use anyhow::{Context, Result};
 use colored::*;
+use futures::future::join_all;
 use inquire::MultiSelect;
 use std::{
     fs,
@@ -27,7 +28,9 @@ pub async fn handle_install_command(tool_name: Option<&str>) -> Result<()> {
             return Ok(());
         }
 
-        install_tool(tool).await?;
+        println!("Installing {}...", tool.name.bright_cyan());
+        install_tool(tool.clone()).await?;
+        println!("{} {} installed successfully!", "✓".green(), tool.name);
         return Ok(());
     }
 
@@ -74,13 +77,28 @@ pub async fn handle_install_command(tool_name: Option<&str>) -> Result<()> {
         Ok(selections) if !selections.is_empty() => {
             println!("\n{}", "Starting installation...".bright_cyan());
 
-            for selection in selections {
-                if let Some(tool) = uninstalled_tools
-                    .iter()
-                    .find(|t| selection.starts_with(&t.name))
-                    && let Err(e) = install_tool(tool).await
-                {
-                    println!("{} Failed to install {}: {}", "✗".red(), tool.name, e);
+            let handles: Vec<_> = selections
+                .iter()
+                .filter_map(|selection| {
+                    uninstalled_tools
+                        .iter()
+                        .find(|t| selection.starts_with(&t.name))
+                        .map(|t| (*t).clone())
+                })
+                .map(|tool| {
+                    tokio::spawn(async move {
+                        let name = tool.name.clone();
+                        (name, install_tool(tool).await)
+                    })
+                })
+                .collect();
+
+            let results = join_all(handles).await;
+            for result in results {
+                let (name, outcome) = result.expect("task panicked");
+                match outcome {
+                    Ok(_) => println!("{} {} installed successfully!", "✓".green(), name),
+                    Err(e) => println!("{} Failed to install {}: {}", "✗".red(), name, e),
                 }
             }
 
@@ -221,9 +239,24 @@ pub async fn handle_upgrade_command(tool_name: Option<&str>) -> Result<()> {
 
         // Update tools with available updates
         println!();
-        for (tool, _, _) in updates_available {
-            upgrade_tool(tool).await?;
-            println!();
+        let handles: Vec<_> = updates_available
+            .into_iter()
+            .map(|(tool, _, _)| {
+                let tool = tool.clone();
+                tokio::spawn(async move {
+                    let name = tool.name.clone();
+                    (name, upgrade_tool(tool).await)
+                })
+            })
+            .collect();
+
+        let results = join_all(handles).await;
+        for result in results {
+            let (name, outcome) = result.expect("task panicked");
+            match outcome {
+                Ok(_) => println!("{} {} upgraded successfully!", "✓".green(), name),
+                Err(e) => println!("{} Failed to upgrade {}: {}", "✗".red(), name, e),
+            }
         }
 
         println!("{} All updates complete!", "✓".green());
@@ -248,31 +281,29 @@ pub async fn handle_upgrade_command(tool_name: Option<&str>) -> Result<()> {
         return Ok(());
     }
 
-    upgrade_tool(tool).await
+    println!("Upgrading {}...", tool.name.bright_cyan());
+    upgrade_tool(tool.clone()).await?;
+    println!("{} {} upgraded successfully!", "✓".green(), tool.name);
+    Ok(())
 }
 
-async fn install_tool(tool: &Tool) -> Result<()> {
-    println!("Installing {}...", tool.name.bright_cyan());
-
+async fn install_tool(tool: Tool) -> Result<()> {
     match &tool.install_method {
         InstallMethod::Bootstrap(url) => {
-            run_install_script(url, "bootstrap.sh", "bootstrap script").await?;
-            println!("{} {} installed successfully!", "✓".green(), tool.name);
+            run_install_script(url, "bootstrap.sh").await?;
         }
         InstallMethod::Amp(url) => {
-            run_install_script(url, "amp_install.sh", "Amp installer").await?;
-            println!("{} {} installed successfully!", "✓".green(), tool.name);
+            run_install_script(url, "amp_install.sh").await?;
         }
         InstallMethod::Npm(package) => {
-            let status = Command::new("npm")
+            let output = Command::new("npm")
                 .args(["install", "-g", package])
-                .status()
+                .output()
                 .context("Failed to run npm install")?;
 
-            if status.success() {
-                println!("{} {} installed successfully!", "✓".green(), tool.name);
-            } else {
-                anyhow::bail!("npm install failed for {}", tool.name);
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                anyhow::bail!("npm install failed for {}: {}", tool.name, stderr.trim());
             }
         }
     }
@@ -503,103 +534,89 @@ async fn uninstall_tool(tool: &Tool, remove_config: bool, force: bool) -> Result
     Ok(())
 }
 
-async fn upgrade_tool(tool: &Tool) -> Result<()> {
-    println!("Upgrading {}...", tool.name.bright_cyan());
-
+async fn upgrade_tool(tool: Tool) -> Result<()> {
     match &tool.install_method {
         InstallMethod::Amp(_) => {
-            println!("{} Running `amp update`...", "→".cyan());
-            let status = Command::new("amp")
+            let output = Command::new("amp")
                 .arg("update")
-                .status()
+                .output()
                 .context("Failed to run `amp update`")?;
 
-            if status.success() {
-                println!("{} {} upgraded successfully!", "✓".green(), tool.name);
-                Ok(())
-            } else {
-                anyhow::bail!("`amp update` failed - see output above for details");
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                anyhow::bail!("`amp update` failed: {}", stderr.trim());
             }
         }
         InstallMethod::Npm(package) => {
-            println!("{} Running `npm install -g {}`...", "→".cyan(), package);
-            let status = Command::new("npm")
+            let output = Command::new("npm")
                 .args(["install", "-g"])
                 .arg(package)
-                .status()
+                .output()
                 .context("Failed to run npm install")?;
 
-            if status.success() {
-                println!("{} {} upgraded successfully!", "✓".green(), tool.name);
-                Ok(())
-            } else {
-                anyhow::bail!("npm install failed for {}", tool.name);
+            if !output.status.success() {
+                let stderr = String::from_utf8_lossy(&output.stderr);
+                anyhow::bail!("npm install failed for {}: {}", tool.name, stderr.trim());
             }
         }
         InstallMethod::Bootstrap(url) => {
             let binary_name = tool.binary_name.as_deref().unwrap_or("");
 
-            if binary_name == "claude" {
-                println!("{} Running `claude update`...", "→".cyan());
-                let status = Command::new("claude")
-                    .arg("update")
-                    .status()
-                    .context("Failed to run claude update")?;
+            match binary_name {
+                "claude" => {
+                    let output = Command::new("claude")
+                        .arg("update")
+                        .output()
+                        .context("Failed to run claude update")?;
 
-                if status.success() {
-                    println!("{} {} upgraded successfully!", "✓".green(), tool.name);
-                    Ok(())
-                } else {
-                    anyhow::bail!("claude update failed");
+                    if !output.status.success() {
+                        let stderr = String::from_utf8_lossy(&output.stderr);
+                        anyhow::bail!("claude update failed: {}", stderr.trim());
+                    }
                 }
-            } else if binary_name == "cursor-agent" {
-                println!("{} Running `cursor-agent upgrade`...", "→".cyan());
-                let status = Command::new("cursor-agent")
-                    .arg("upgrade")
-                    .status()
-                    .context("Failed to run cursor-agent upgrade")?;
+                "cursor-agent" => {
+                    let output = Command::new("cursor-agent")
+                        .arg("upgrade")
+                        .output()
+                        .context("Failed to run cursor-agent upgrade")?;
 
-                if status.success() {
-                    println!("{} {} upgraded successfully!", "✓".green(), tool.name);
-                    Ok(())
-                } else {
-                    anyhow::bail!("cursor-agent upgrade failed");
+                    if !output.status.success() {
+                        let stderr = String::from_utf8_lossy(&output.stderr);
+                        anyhow::bail!("cursor-agent upgrade failed: {}", stderr.trim());
+                    }
                 }
-            } else if binary_name == "opencode" {
-                println!("{} Running `opencode upgrade`...", "→".cyan());
-                let status = Command::new("opencode")
-                    .arg("upgrade")
-                    .status()
-                    .context("Failed to run opencode upgrade")?;
+                "opencode" => {
+                    let output = Command::new("opencode")
+                        .arg("upgrade")
+                        .output()
+                        .context("Failed to run opencode upgrade")?;
 
-                if status.success() {
-                    println!("{} {} upgraded successfully!", "✓".green(), tool.name);
-                    Ok(())
-                } else {
-                    anyhow::bail!("opencode upgrade failed");
+                    if !output.status.success() {
+                        let stderr = String::from_utf8_lossy(&output.stderr);
+                        anyhow::bail!("opencode upgrade failed: {}", stderr.trim());
+                    }
                 }
-            } else {
-                run_install_script(url, "bootstrap_upgrade.sh", "bootstrap script").await?;
-                println!("{} {} upgraded successfully!", "✓".green(), tool.name);
-                Ok(())
+                _ => {
+                    run_install_script(url, "bootstrap_upgrade.sh").await?;
+                }
             }
         }
     }
+
+    Ok(())
 }
 
-async fn run_install_script(url: &str, temp_filename: &str, description: &str) -> Result<()> {
-    println!("{} Downloading {}...", "→".cyan(), description);
-
+async fn run_install_script(url: &str, temp_filename: &str) -> Result<()> {
     let script = reqwest::get(url)
         .await
-        .with_context(|| format!("Failed to download {}", description))?
+        .context("Failed to download install script")?
         .text()
         .await
-        .with_context(|| format!("Failed to read {}", description))?;
+        .context("Failed to read install script")?;
 
     let temp_dir = std::env::temp_dir();
     let script_path = temp_dir.join(temp_filename);
-    fs::write(&script_path, script).with_context(|| format!("Failed to write {}", description))?;
+    fs::write(&script_path, &script).context("Failed to write install script")?;
 
     #[cfg(unix)]
     {
@@ -609,21 +626,18 @@ async fn run_install_script(url: &str, temp_filename: &str, description: &str) -
         fs::set_permissions(&script_path, perms)?;
     }
 
-    println!("{} Running {}...", "→".cyan(), description);
-    println!();
-
-    let status = Command::new("bash")
+    let output = Command::new("bash")
         .arg(&script_path)
-        .status()
+        .output()
         .context("Failed to run install script")?;
 
     let _ = fs::remove_file(&script_path);
 
-    println!();
-    if status.success() {
+    if output.status.success() {
         Ok(())
     } else {
-        anyhow::bail!("Installation failed - see output above for details");
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        anyhow::bail!("Install script failed: {}", stderr.trim());
     }
 }
 
