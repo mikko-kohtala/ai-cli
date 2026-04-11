@@ -548,15 +548,32 @@ async fn upgrade_tool(tool: Tool) -> Result<()> {
             }
         }
         InstallMethod::Npm(package) => {
-            let output = Command::new("npm")
-                .args(["install", "-g"])
-                .arg(package)
-                .output()
-                .context("Failed to run npm install")?;
+            let binary_name = tool.binary_name.as_deref().unwrap_or("");
 
-            if !output.status.success() {
-                let stderr = String::from_utf8_lossy(&output.stderr);
-                anyhow::bail!("npm install failed for {}: {}", tool.name, stderr.trim());
+            match binary_name {
+                "copilot" => {
+                    let output = Command::new("copilot")
+                        .arg("update")
+                        .output()
+                        .context("Failed to run copilot update")?;
+
+                    if !output.status.success() {
+                        let stderr = String::from_utf8_lossy(&output.stderr);
+                        anyhow::bail!("copilot update failed: {}", stderr.trim());
+                    }
+                }
+                _ => {
+                    let output = Command::new("npm")
+                        .args(["install", "-g"])
+                        .arg(package)
+                        .output()
+                        .context("Failed to run npm install")?;
+
+                    if !output.status.success() {
+                        let stderr = String::from_utf8_lossy(&output.stderr);
+                        anyhow::bail!("npm install failed for {}: {}", tool.name, stderr.trim());
+                    }
+                }
             }
         }
         InstallMethod::Bootstrap(url) => {
