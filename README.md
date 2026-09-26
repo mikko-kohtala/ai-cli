@@ -50,6 +50,9 @@ ai-cli mcp doctor            # show config file paths
 - Factory CLI
 - Gemini CLI
 - Kilo Code CLI
+- Kimi CLI
+- Kiro CLI
+- Mistral Vibe
 - OpenCode
 
 ## MCP Servers
