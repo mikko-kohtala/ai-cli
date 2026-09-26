@@ -10,7 +10,7 @@ check: fmt clippy test
 # Check formatting
 fmt:
 	@echo "Checking code formatting..."
-	@cargo fmt --all -- --check
+	@cargo fmt --all --check
 
 # Apply formatting
 fmt-fix:
@@ -20,11 +20,11 @@ fmt-fix:
 # Run clippy linter
 clippy:
 	@echo "Running clippy..."
-	@cargo clippy --all-targets --all-features
+	@cargo clippy --all-targets --all-features --locked -- -D warnings
 
 # Run tests
 test:
-	@cargo test
+	@cargo test --locked
 
 # Build the project
 build:

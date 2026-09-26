@@ -13,6 +13,9 @@ cargo run -- apps   # list tools
 cargo run -- mcp list  # list mcp status
 ```
 
+## Validation
+Validate all work with `make check` (fmt, clippy, tests) before calling it done. `make fmt-fix` applies formatting.
+
 ## Architecture
 
 ### Apps (`src/tools/`)
